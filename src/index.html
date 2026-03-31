@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ThisCord</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ── Login Screen ───────────────────────────────────────────────────── -->
+  <div class="login-screen" id="login-screen">
+    <div class="login-orb login-orb-1"></div>
+    <div class="login-orb login-orb-2"></div>
+    <div class="login-grid"></div>
+
+    <!-- draggable titlebar area so frameless window can be moved -->
+    <div class="login-drag-region"></div>
+
+    <div class="login-card">
+      <div class="login-logo">
+        <svg width="38" height="38" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="11" fill="url(#lg)"/>
+          <path d="M8 12h8M12 8v8" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+          <defs><linearGradient id="lg" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#7c6ef5"/><stop offset="1" stop-color="#22d3c8"/>
+          </linearGradient></defs>
+        </svg>
+        <span class="login-logo-name">ThisCord</span>
+      </div>
+
+      <h1 class="login-title">Welcome back 👋</h1>
+      <p class="login-sub">Sign in to your encrypted workspace</p>
+
+      <div class="login-encrypt-badge">🔒 End-to-end encrypted · AES-256-GCM</div>
+
+      <button class="login-oauth-btn" id="login-google">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="flex-shrink:0">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+        </svg>
+        <span>Continue with Google</span>
+      </button>
+
+      <button class="login-oauth-btn github" id="login-github">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0">
+          <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+        </svg>
+        <span>Continue with GitHub</span>
+      </button>
+
+      <p class="login-hint">🌐 Opens your browser to authorize — your password never leaves the provider</p>
+
+      <div class="login-divider"></div>
+
+      <div class="login-footer">
+        <span>New to ThisCord?</span>
+        <button class="login-link" id="login-signup-link">Create an account →</button>
+      </div>
+    </div>
+
+    <!-- window controls still accessible on login screen -->
+    <div class="login-win-controls">
+      <button class="tb-btn" id="login-btn-min">
+        <svg width="10" height="2" viewBox="0 0 10 2"><rect width="10" height="2" rx="1" fill="currentColor"/></svg>
+      </button>
+      <button class="tb-btn" id="login-btn-max">
+        <svg width="10" height="10" viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+      </button>
+      <button class="tb-btn close-btn" id="login-btn-close">
+        <svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 1l8 8M9 1L1 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Custom Titlebar ─────────────────────────────────────────────────── -->
+  <div class="titlebar" id="titlebar">
+    <div class="titlebar-drag">
+      <div class="tb-logo">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" fill="url(#tg)" />
+          <path d="M8 12h8M12 8v8" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
+          <defs><linearGradient id="tg" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#7c6ef5"/><stop offset="1" stop-color="#22d3c8"/>
+          </linearGradient></defs>
+        </svg>
+      </div>
+      <span class="tb-title">ThisCord</span>
+    </div>
+    <div class="titlebar-controls">
+      <button class="tb-btn" id="btn-min" title="Minimize">
+        <svg width="10" height="2" viewBox="0 0 10 2"><rect width="10" height="2" rx="1" fill="currentColor"/></svg>
+      </button>
+      <button class="tb-btn" id="btn-max" title="Maximize">
+        <svg width="10" height="10" viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+      </button>
+      <button class="tb-btn close-btn" id="btn-close" title="Close">
+        <svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 1l8 8M9 1L1 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── App Layout ──────────────────────────────────────────────────────── -->
+  <div class="app">
+
+    <!-- Server Bar -->
+    <div class="server-bar">
+      <button class="server-icon home active" data-tip="Home" id="nav-home">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+        </svg>
+      </button>
+      <div class="server-divider"></div>
+      <button class="server-icon" data-tip="ThisCord HQ" data-server="main">TC</button>
+      <button class="server-icon add-server" data-tip="Add Server">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Channel Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <span class="server-name">ThisCord HQ</span>
+        <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M7 10l5 5 5-5z"/>
+        </svg>
+      </div>
+
+      <div class="channels-scroll">
+
+        <!-- Text Channels -->
+        <div class="ch-group">
+          <div class="ch-group-header">
+            <svg class="collapse-arrow" width="8" height="8" viewBox="0 0 8 8">
+              <path d="M1 2l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+            </svg>
+            <span>Text Channels</span>
+            <button class="add-ch-btn" title="New Channel">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+            </button>
+          </div>
+          <button class="channel active" data-type="text" data-channel="general">
+            <span class="ch-hash">#</span><span class="ch-label">general 💬</span>
+          </button>
+          <button class="channel" data-type="text" data-channel="announcements">
+            <span class="ch-hash">#</span><span class="ch-label">announcements 📢</span>
+            <span class="unread-badge">2</span>
+          </button>
+          <button class="channel" data-type="text" data-channel="dev-talk">
+            <span class="ch-hash">#</span><span class="ch-label">dev-talk 💻</span>
+          </button>
+          <button class="channel" data-type="text" data-channel="media">
+            <span class="ch-hash">#</span><span class="ch-label">media 🎨</span>
+          </button>
+        </div>
+
+        <!-- Voice Channels -->
+        <div class="ch-group">
+          <div class="ch-group-header">
+            <svg class="collapse-arrow" width="8" height="8" viewBox="0 0 8 8">
+              <path d="M1 2l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+            </svg>
+            <span>Voice Channels</span>
+            <button class="add-ch-btn" title="New Voice Channel">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+            </button>
+          </div>
+          <button class="channel" data-type="voice" data-channel="lounge">
+            <svg class="ch-voice-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
+            </svg>
+            <span class="ch-label">Lounge</span>
+          </button>
+          <button class="channel" data-type="voice" data-channel="gaming">
+            <svg class="ch-voice-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
+            </svg>
+            <span class="ch-label">Gaming</span>
+          </button>
+          <button class="channel" data-type="voice" data-channel="stream-stage">
+            <svg class="ch-voice-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M21 3H3v18h18V3zm-9 13l-5-5 1.41-1.41L12 13.17l7.59-7.59L21 7l-9 9z"/>
+            </svg>
+            <span class="ch-label">Stream Stage</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Direct Messages -->
+      <div class="dm-section">
+        <div class="ch-group-header">
+          <svg class="collapse-arrow" width="8" height="8" viewBox="0 0 8 8">
+            <path d="M1 2l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+          </svg>
+          <span>Direct Messages</span>
+          <button class="add-ch-btn" id="new-dm-btn" title="New DM">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+          </button>
+        </div>
+        <div id="dm-list"></div>
+      </div>
+
+      <!-- User Panel -->
+      <div class="user-panel">
+        <div class="user-avatar-wrap">
+          <div class="user-avatar" id="user-avatar">E</div>
+          <div class="status-dot online" id="status-dot"></div>
+        </div>
+        <div class="user-meta">
+          <div class="username-row">
+            <span class="username" id="username-display">Elias</span><span class="user-disc" id="user-disc-display">#0000</span>
+          </div>
+          <div class="user-tag" id="user-status-text">Online</div>
+        </div>
+        <div class="user-btns">
+          <button class="uc-btn" id="mic-btn" title="Toggle Microphone">
+            <svg id="mic-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 15c1.66 0 3-1.34 3-3V6c0-1.66-1.34-3-3-3S9 4.34 9 6v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-2.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+            </svg>
+          </button>
+          <button class="uc-btn" id="deaf-btn" title="Toggle Headphones">
+            <svg id="deaf-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 3C6.48 3 2 7.48 2 13v4c0 1.1.9 2 2 2h1c1.1 0 2-.9 2-2v-3c0-1.1-.9-2-2-2H4c0-4.42 3.58-8 8-8s8 3.58 8 8h-1c-1.1 0-2 .9-2 2v3c0 1.1.9 2 2 2h1c1.1 0 2-.9 2-2v-4c0-5.52-4.48-10-10-10z"/>
+            </svg>
+          </button>
+          <button class="uc-btn" id="settings-btn" title="User Settings">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+
+      <!-- ── CHAT VIEW ────────────────────────────────────────────────── -->
+      <div class="view active" id="view-chat">
+        <div class="chat-header">
+          <div class="chat-header-left">
+            <span class="ch-hdr-hash">#</span>
+            <span class="ch-hdr-name" id="active-ch-name">general</span>
+            <div class="ch-hdr-divider"></div>
+            <span class="ch-hdr-topic" id="active-ch-topic">Welcome to ThisCord — the fastest way to communicate</span>
+          </div>
+          <div class="chat-header-right">
+            <button class="hdr-icon-btn" id="share-screen-btn" title="Share Screen">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M20 18c1.1 0 1.99-.9 1.99-2L22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 16V6h16v10.01L4 16z"/>
+              </svg>
+            </button>
+            <button class="hdr-icon-btn" id="members-toggle-btn" title="Member List">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+              </svg>
+            </button>
+            <div class="hdr-search">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+              </svg>
+              <input type="text" class="hdr-search-input" placeholder="Search" />
+            </div>
+          </div>
+        </div>
+
+        <div class="messages" id="messages"></div>
+
+        <div class="msg-input-area">
+          <button class="msg-attach-btn" title="Attach File">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+            </svg>
+          </button>
+          <div class="msg-input-wrap">
+            <input type="text" id="msg-input" placeholder="Message #general" autocomplete="off" />
+          </div>
+          <div class="msg-input-actions">
+            <button class="msg-emoji-btn" title="Emoji">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
+              </svg>
+            </button>
+            <button class="msg-send-btn" id="send-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── DM VIEW ────────────────────────────────────────────────── -->
+      <div class="view" id="view-dm">
+        <div class="chat-header">
+          <div class="chat-header-left">
+            <div class="dm-avatar-hdr" id="dm-hdr-avatar">?</div>
+            <span class="ch-hdr-name" id="dm-hdr-name">Username</span>
+            <div class="ch-hdr-divider"></div>
+            <span class="ch-hdr-topic" id="dm-hdr-status">Direct Message</span>
+          </div>
+          <div class="chat-header-right">
+            <div class="hdr-search">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+              </svg>
+              <input type="text" class="hdr-search-input" placeholder="Search" />
+            </div>
+          </div>
+        </div>
+        <div class="messages" id="dm-messages"></div>
+        <div class="msg-input-area">
+          <div class="msg-input-wrap">
+            <input type="text" id="dm-input" placeholder="Message @someone" autocomplete="off" />
+          </div>
+          <div class="msg-input-actions">
+            <button class="msg-emoji-btn" title="Emoji">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
+              </svg>
+            </button>
+            <button class="msg-send-btn" id="dm-send-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── VOICE VIEW ───────────────────────────────────────────────── -->
+      <div class="view" id="view-voice">
+        <div class="voice-hdr">
+          <div class="voice-hdr-left">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="var(--green)">
+              <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
+            </svg>
+            <span class="voice-hdr-name" id="voice-ch-name">Lounge</span>
+            <span class="voice-hdr-badge">Voice Connected</span>
+          </div>
+          <button class="voice-hdr-end-btn" id="vc-disconnect">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08c-.18-.17-.29-.42-.29-.7 0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.67c.18.18.29.43.29.71 0 .28-.11.53-.29.71l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.1-.7-.28-.79-.73-1.68-1.36-2.66-1.85-.33-.16-.56-.51-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"/>
+            </svg>
+            Disconnect
+          </button>
+        </div>
+
+        <div class="participants-grid" id="participants-grid"></div>
+
+        <div class="voice-controls-bar">
+          <button class="vc-ctrl-btn" id="vc-mic-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 15c1.66 0 3-1.34 3-3V6c0-1.66-1.34-3-3-3S9 4.34 9 6v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-2.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+            </svg>
+            <span>Mic On</span>
+          </button>
+          <button class="vc-ctrl-btn" id="vc-screen-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M20 18c1.1 0 1.99-.9 1.99-2L22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 16V6h16v10.01L4 16z"/>
+            </svg>
+            <span>Share Screen</span>
+          </button>
+          <button class="vc-ctrl-btn" id="vc-cam-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>
+            </svg>
+            <span>Camera</span>
+          </button>
+          <div class="vc-screen-preview-wrap" id="vc-screen-preview-wrap" style="display:none">
+            <div class="vc-screen-preview-inner" id="vc-screen-preview-inner">
+              <video id="vc-screen-preview" autoplay muted class="vc-screen-preview"></video>
+              <div class="screen-preview-overlay">
+                <button class="screen-fullscreen-btn" id="screen-fullscreen-btn" title="Fullscreen">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <button class="stop-share-btn" id="stop-share-btn">Stop Sharing</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Members Panel -->
+    <div class="members-panel" id="members-panel">
+      <div class="members-group">
+        <div class="members-label">Online — 1</div>
+        <div class="member-item" id="self-member-item" style="cursor:pointer">
+          <div class="member-avatar-wrap">
+            <div class="member-avatar" id="members-self-avatar">?</div>
+            <div class="status-dot online small"></div>
+          </div>
+          <div class="member-info">
+            <span class="member-name" id="members-self-name">—</span>
+            <span class="member-role">👑 Admin</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /.app -->
+
+  <!-- ── Profile Modal ───────────────────────────────────────────────────── -->
+  <div class="modal-overlay" id="profile-overlay">
+    <div class="profile-dialog">
+      <button class="profile-close-btn" id="profile-close">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+        </svg>
+      </button>
+
+      <div class="profile-banner">
+        <div class="profile-banner-gradient"></div>
+      </div>
+
+      <div class="profile-body">
+        <div class="profile-avatar-wrap">
+          <div class="profile-avatar-ring">
+            <div class="profile-avatar-img" id="profile-avatar-el">?</div>
+          </div>
+          <div class="status-dot online" style="width:16px;height:16px;right:-2px;bottom:-2px;border-width:3px"></div>
+        </div>
+
+        <div class="profile-name-row">
+          <span class="profile-display-name" id="profile-display-name">Loading...</span>
+          <span class="profile-verified">✅</span>
+        </div>
+        <div class="profile-email" id="profile-email-el">—</div>
+
+        <div class="profile-badges-row">
+          <span class="profile-badge accent">🔐 E2E Encrypted</span>
+          <span class="profile-badge teal" id="profile-provider-badge">🔗 OAuth</span>
+        </div>
+
+        <div class="profile-divider"></div>
+
+        <div class="profile-section-label">MEMBER SINCE</div>
+        <div class="profile-since" id="profile-since">—</div>
+
+        <div class="profile-divider"></div>
+
+        <button class="profile-signout-btn" id="profile-signout">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+          </svg>
+          Sign Out
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Settings Modal ──────────────────────────────────────────────────── -->
+  <div class="modal-overlay" id="settings-overlay">
+    <div class="settings-dialog">
+
+      <div class="settings-nav">
+        <div class="settings-nav-section">User Settings</div>
+        <button class="settings-tab active" data-tab="audio">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+          Audio Lab
+        </button>
+        <button class="settings-tab" data-tab="video">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+          Video & Screen
+        </button>
+        <button class="settings-tab" data-tab="appearance">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+          Appearance
+        </button>
+        <div class="settings-divider"></div>
+        <div class="settings-nav-section">App</div>
+        <button class="settings-tab" data-tab="keybinds">Keybinds</button>
+        <button class="settings-tab" data-tab="about">About</button>
+      </div>
+
+      <div class="settings-body">
+
+        <!-- ── Audio Lab ────────────────────────────────────────────── -->
+        <div class="settings-panel active" id="panel-audio">
+          <h2 class="settings-title">Audio Lab</h2>
+
+          <div class="setting-block">
+            <label class="setting-label">Input Device (Microphone)</label>
+            <select class="setting-select" id="input-device">
+              <option>Loading devices...</option>
+            </select>
+          </div>
+
+          <div class="setting-block">
+            <label class="setting-label">Output Device (Speakers / Headphones)</label>
+            <select class="setting-select" id="output-device">
+              <option>Loading devices...</option>
+            </select>
+          </div>
+
+          <div class="setting-block">
+            <label class="setting-label">Microphone Test & Level</label>
+            <div class="mic-test-area">
+              <div class="vol-meter-wrap">
+                <div class="vol-meter-track">
+                  <div class="vol-meter-fill" id="vol-bar"></div>
+                </div>
+                <span class="vol-label" id="vol-label">0%</span>
+              </div>
+              <div class="mic-test-btns">
+                <button class="lab-btn" id="start-mic-test">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                  Start Test
+                </button>
+                <button class="lab-btn dim" id="stop-mic-test" disabled>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12"/></svg>
+                  Stop
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-row-text">
+              <div class="setting-row-label">Hear Yourself <span class="badge-tag">Loopback</span></div>
+              <div class="setting-row-sub">Monitor your own mic in real-time through your headphones</div>
+            </div>
+            <div class="toggle" id="loopback-toggle" role="switch" aria-checked="false">
+              <div class="toggle-knob"></div>
+            </div>
+          </div>
+
+          <div class="setting-block">
+            <label class="setting-label">Input Volume</label>
+            <div class="slider-row">
+              <input type="range" class="slider" id="input-vol" min="0" max="200" value="100" />
+              <span class="slider-val" id="input-vol-val">100%</span>
+            </div>
+          </div>
+
+          <div class="setting-block">
+            <label class="setting-label">Output Volume</label>
+            <div class="slider-row">
+              <input type="range" class="slider" id="output-vol" min="0" max="100" value="80" />
+              <span class="slider-val" id="output-vol-val">80%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Video & Screen Share ─────────────────────────────────── -->
+        <div class="settings-panel" id="panel-video">
+          <h2 class="settings-title">Video & Screen Share</h2>
+
+          <div class="setting-block">
+            <label class="setting-label">Screen Share Quality</label>
+            <div class="quality-row">
+              <span class="quality-chip">30 FPS</span>
+              <span class="quality-chip">1080p</span>
+              <span class="quality-chip teal">Stable Mode</span>
+            </div>
+            <p class="setting-desc">Hard-locked to 30 FPS for maximum stability across all systems.</p>
+          </div>
+
+          <div class="setting-block">
+            <label class="setting-label">Camera Device</label>
+            <select class="setting-select" id="camera-device">
+              <option>Loading cameras...</option>
+            </select>
+          </div>
+
+          <div class="setting-block">
+            <label class="setting-label">Screen Share Preview</label>
+            <p class="setting-desc">Select a window or monitor to preview the capture stream.</p>
+            <button class="lab-btn" id="preview-screen-btn">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M20 18c1.1 0 1.99-.9 1.99-2L22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4z"/></svg>
+              Open Source Picker
+            </button>
+            <video id="screen-preview-vid" class="screen-preview-vid" autoplay muted style="display:none"></video>
+          </div>
+        </div>
+
+        <!-- ── Appearance ───────────────────────────────────────────── -->
+        <div class="settings-panel" id="panel-appearance">
+          <h2 class="settings-title">Appearance</h2>
+          <div class="setting-block">
+            <label class="setting-label">Theme</label>
+            <div class="theme-options">
+              <div class="theme-card selected">
+                <div class="theme-preview midnight"></div>
+                <span>Midnight Pro</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Keybinds ─────────────────────────────────────────────── -->
+        <div class="settings-panel" id="panel-keybinds">
+          <h2 class="settings-title">Keybinds</h2>
+          <div class="keybind-table">
+            <div class="keybind-row"><span>Send Message</span><kbd>Enter</kbd></div>
+            <div class="keybind-row"><span>Toggle Mic</span><kbd>Ctrl+M</kbd></div>
+            <div class="keybind-row"><span>Toggle Deafen</span><kbd>Ctrl+D</kbd></div>
+            <div class="keybind-row"><span>Open Settings</span><kbd>Ctrl+,</kbd></div>
+            <div class="keybind-row"><span>Close Settings</span><kbd>Esc</kbd></div>
+          </div>
+        </div>
+
+        <!-- ── About ────────────────────────────────────────────────── -->
+        <div class="settings-panel" id="panel-about">
+          <h2 class="settings-title">About ThisCord</h2>
+          <div class="about-logo">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="11" fill="url(#ag)"/>
+              <path d="M8 12h8M12 8v8" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+              <defs><linearGradient id="ag" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#7c6ef5"/><stop offset="1" stop-color="#22d3c8"/>
+              </linearGradient></defs>
+            </svg>
+          </div>
+          <p class="about-name">ThisCord</p>
+          <p class="about-version">v0.1.0 — Electron Build</p>
+          <p class="about-desc">A modern, high-performance communication platform built with Electron and Web APIs.</p>
+        </div>
+
+      </div><!-- /.settings-body -->
+
+      <button class="settings-close-btn" id="settings-close">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+        </svg>
+        Esc
+      </button>
+
+    </div><!-- /.settings-dialog -->
+  </div>
+
+  <!-- ── Screen Source Picker Modal ─────────────────────────────────────── -->
+  <div class="modal-overlay" id="picker-overlay">
+    <div class="picker-dialog">
+      <div class="picker-header">
+        <h3>Choose What to Share</h3>
+        <button class="picker-close" id="picker-close">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+          </svg>
+        </button>
+      </div>
+      <p class="picker-sub">Select a window or your entire screen. Capture locked to 30 FPS.</p>
+      <div class="sources-grid" id="sources-grid"></div>
+      <div class="picker-footer">
+        <button class="lab-btn" id="picker-cancel">Cancel</button>
+        <button class="lab-btn primary" id="picker-share" disabled>Share</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Create / Join Server Modal ───────────────────────────────────── -->
+  <div class="modal-overlay" id="server-modal-overlay">
+    <div class="server-modal">
+      <button class="profile-close-btn" id="server-modal-close">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+        </svg>
+      </button>
+      <div class="server-modal-tabs">
+        <button class="server-modal-tab active" data-stab="create">Create Server</button>
+        <button class="server-modal-tab" data-stab="join">Join by Invite</button>
+      </div>
+
+      <!-- Create -->
+      <div class="server-modal-panel active" id="stab-create">
+        <div class="server-modal-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="11" fill="url(#smg)"/>
+            <path d="M8 12h8M12 8v8" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+            <defs><linearGradient id="smg" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#7c6ef5"/><stop offset="1" stop-color="#22d3c8"/>
+            </linearGradient></defs>
+          </svg>
+        </div>
+        <h2 class="server-modal-title">Create Your Server</h2>
+        <p class="server-modal-sub">Give your server a name. You can always change it later.</p>
+        <input type="text" class="server-modal-input" id="create-server-name" placeholder="My Awesome Server" maxlength="32" />
+        <button class="lab-btn primary wide" id="create-server-btn">Create Server</button>
+      </div>
+
+      <!-- Join -->
+      <div class="server-modal-panel" id="stab-join">
+        <div class="server-modal-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" style="color:#7c6ef5">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8l6 4-6 4z"/>
+          </svg>
+        </div>
+        <h2 class="server-modal-title">Join a Server</h2>
+        <p class="server-modal-sub">Paste the invite code your friend shared with you.</p>
+        <input type="text" class="server-modal-input" id="join-server-code" placeholder="Paste invite code" />
+        <button class="lab-btn primary wide" id="join-server-btn">Join Server</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── New DM Modal ────────────────────────────────────────────────── -->
+  <div class="modal-overlay" id="new-dm-overlay">
+    <div class="new-dm-dialog">
+      <button class="profile-close-btn" id="new-dm-close">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+        </svg>
+      </button>
+      <h2 class="new-dm-title">Open Direct Message</h2>
+      <p class="server-modal-sub">Select an online user to message.</p>
+      <div id="dm-user-list" class="dm-user-list"></div>
+    </div>
+  </div>
+
+  <!-- ── Server Invite Copy Toast ───────────────────────────────────── -->
+  <div id="toast-container"></div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>
