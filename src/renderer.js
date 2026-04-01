@@ -1323,8 +1323,14 @@ const RTC_CONFIG = {
   iceServers: [
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
+    { urls: 'stun:stun2.l.google.com:19302' },
+    { urls: 'stun:stun3.l.google.com:19302' },
+    { urls: 'stun:stun4.l.google.com:19302' },
   ],
 };
+
+// Queue ICE candidates that arrive before setRemoteDescription is done
+const pendingCandidates = new Map(); // username → RTCIceCandidate[]
 
 function createPeerConnection(remoteUsername) {
   if (state.peerConnections.has(remoteUsername)) {
@@ -1341,16 +1347,19 @@ function createPeerConnection(remoteUsername) {
 
   // When we receive remote audio
   pc.ontrack = (event) => {
+    if (!event.streams || !event.streams[0]) return;
     let audio = state.remoteAudios.get(remoteUsername);
     if (!audio) {
       audio = document.createElement('audio');
       audio.autoplay = true;
+      audio.playsInline = true;
       audio.style.display = 'none';
       document.body.appendChild(audio);
       state.remoteAudios.set(remoteUsername, audio);
     }
     audio.srcObject = event.streams[0];
-    audio.muted = state.deafened;
+    audio.muted = !!state.deafened;
+    audio.play().catch(() => {});   // force play in Electron
     updateVoiceParticipantsUI();
   };
 
@@ -1374,6 +1383,7 @@ function removePeerConnection(username) {
   if (pc) { pc.close(); state.peerConnections.delete(username); }
   const audio = state.remoteAudios.get(username);
   if (audio) { audio.srcObject = null; audio.remove(); state.remoteAudios.delete(username); }
+  pendingCandidates.delete(username);
 }
 
 function cleanupAllPeerConnections() {
@@ -1434,6 +1444,12 @@ async function handleRTCSignal(from, data) {
     if (data.type === 'offer') {
       const pc = createPeerConnection(from);
       await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
+
+      // Flush any ICE candidates that arrived before the offer was processed
+      const queued = pendingCandidates.get(from) || [];
+      for (const c of queued) await pc.addIceCandidate(c).catch(() => {});
+      pendingCandidates.delete(from);
+
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
       wsSend({ type: 'signal', to: from, data: { type: 'answer', sdp: answer } });
@@ -1442,12 +1458,22 @@ async function handleRTCSignal(from, data) {
       const pc = state.peerConnections.get(from);
       if (pc && pc.signalingState !== 'stable') {
         await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
+
+        // Flush queued ICE candidates
+        const queued = pendingCandidates.get(from) || [];
+        for (const c of queued) await pc.addIceCandidate(c).catch(() => {});
+        pendingCandidates.delete(from);
       }
 
     } else if (data.type === 'candidate') {
       const pc = state.peerConnections.get(from);
-      if (pc && data.candidate) {
+      if (pc && pc.remoteDescription && pc.remoteDescription.type) {
+        // Remote description already set — add immediately
         await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+      } else {
+        // Remote description not ready yet — queue it
+        if (!pendingCandidates.has(from)) pendingCandidates.set(from, []);
+        pendingCandidates.get(from).push(new RTCIceCandidate(data.candidate));
       }
     }
   } catch (err) {
