@@ -20,51 +20,94 @@ function crc32(buf) {
 }
 
 function pngChunk(type, data) {
-  const len  = Buffer.alloc(4);  len.writeUInt32BE(data.length);
+  const len   = Buffer.alloc(4); len.writeUInt32BE(data.length);
   const typeB = Buffer.from(type);
-  const crcB  = Buffer.alloc(4);  crcB.writeUInt32BE(crc32(Buffer.concat([typeB, data])));
+  const crcB  = Buffer.alloc(4); crcB.writeUInt32BE(crc32(Buffer.concat([typeB, data])));
   return Buffer.concat([len, typeB, data, crcB]);
 }
 
+// Point-in-polygon (ray casting)
+function pointInPolygon(px, py, poly) {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const xi = poly[i][0], yi = poly[i][1];
+    const xj = poly[j][0], yj = poly[j][1];
+    if (((yi > py) !== (yj > py)) && (px < ((xj - xi) * (py - yi)) / (yj - yi) + xi)) {
+      inside = !inside;
+    }
+  }
+  return inside;
+}
+
 function createPNG(size) {
-  const sig  = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+  const sig = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
 
   const ihdr = Buffer.alloc(13);
-  ihdr.writeUInt32BE(size, 0);
-  ihdr.writeUInt32BE(size, 4);
-  ihdr[8] = 8; ihdr[9] = 2; // 8-bit RGB
+  ihdr.writeUInt32BE(size, 0); ihdr.writeUInt32BE(size, 4);
+  ihdr[8] = 8; ihdr[9] = 6; // 8-bit RGBA
 
-  // Draw a simple circle with gradient-ish purple/teal fill
-  const cx = size / 2, cy = size / 2, r = size / 2 - 2;
+  // Lightning bolt polygon (normalized 0-1 coords, then scaled to size)
+  // Classic zig-zag bolt shape
+  const boltPoly = [
+    [0.60, 0.04],
+    [0.26, 0.50],
+    [0.46, 0.50],
+    [0.38, 0.96],
+    [0.74, 0.50],
+    [0.54, 0.50],
+  ].map(([x, y]) => [x * size, y * size]);
+
+  // Padding/corner radius for background pill
+  const pad = size * 0.06;
+  const cr  = size * 0.22; // corner radius
+
+  function roundedRect(px, py) {
+    // Check if pixel is inside rounded rectangle
+    const x = px - pad, y = py - pad;
+    const w = size - 2 * pad, h = size - 2 * pad;
+    const rx = cr, ry = cr;
+    if (x < 0 || y < 0 || x > w || y > h) return false;
+    // corner checks
+    if (x < rx && y < ry) return Math.hypot(x - rx, y - ry) <= rx;
+    if (x > w - rx && y < ry) return Math.hypot(x - (w - rx), y - ry) <= rx;
+    if (x < rx && y > h - ry) return Math.hypot(x - rx, y - (h - ry)) <= rx;
+    if (x > w - rx && y > h - ry) return Math.hypot(x - (w - rx), y - (h - ry)) <= rx;
+    return true;
+  }
+
   const rows = [];
   for (let y = 0; y < size; y++) {
-    const row = Buffer.alloc(1 + size * 4); // RGBA
-    row[0] = 0; // filter none
+    const row = Buffer.alloc(1 + size * 4);
+    row[0] = 0; // no filter
     for (let x = 0; x < size; x++) {
-      const dx = x - cx, dy = y - cy;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      const t    = Math.max(0, Math.min(1, (x + y) / (size * 2)));
-      // gradient: #7c6ef5 → #22d3c8
-      const rv = Math.round(0x7c + (0x22 - 0x7c) * t);
-      const gv = Math.round(0x6e + (0xd3 - 0x6e) * t);
-      const bv = Math.round(0xf5 + (0xc8 - 0xf5) * t);
-
-      const inside = dist <= r - 1 ? 255 :
-                     dist <= r     ? Math.round((r - dist) * 255) : 0;
       const i = 1 + x * 4;
-      row[i]   = rv; row[i+1] = gv; row[i+2] = bv; row[i+3] = inside;
+      const inBg   = roundedRect(x, y);
+      const inBolt = pointInPolygon(x, y, boltPoly);
+
+      if (!inBg) {
+        // transparent
+        row[i] = 0; row[i+1] = 0; row[i+2] = 0; row[i+3] = 0;
+      } else if (inBolt) {
+        // Lightning bolt: gradient from bright purple (#c084fc) top to bright blue (#60a5fa) bottom
+        const t  = y / size;
+        const rv = Math.round(0xc0 + (0x60 - 0xc0) * t);
+        const gv = Math.round(0x84 + (0xa5 - 0x84) * t);
+        const bv = Math.round(0xfc + (0xfa - 0xfc) * t);
+        row[i] = rv; row[i+1] = gv; row[i+2] = bv; row[i+3] = 255;
+      } else {
+        // Background: dark purple #1e0a3c → #0f0520
+        const t  = (x + y) / (size * 2);
+        const rv = Math.round(0x1e + (0x0f - 0x1e) * t);
+        const gv = Math.round(0x0a + (0x05 - 0x0a) * t);
+        const bv = Math.round(0x3c + (0x20 - 0x3c) * t);
+        row[i] = rv; row[i+1] = gv; row[i+2] = bv; row[i+3] = 255;
+      }
     }
     rows.push(row);
   }
-  const ihdrB = pngChunk('IHDR', Buffer.concat([ihdr.slice(0,9), Buffer.from([2,0,0,0])]));
 
-  // Redo with RGBA
-  const ihdr2 = Buffer.alloc(13);
-  ihdr2.writeUInt32BE(size, 0); ihdr2.writeUInt32BE(size, 4);
-  ihdr2[8] = 8; ihdr2[9] = 6; // RGBA
-
-  const raw  = zlib.deflateSync(Buffer.concat(rows));
-  return Buffer.concat([sig, pngChunk('IHDR', ihdr2), pngChunk('IDAT', raw), pngChunk('IEND', Buffer.alloc(0))]);
+  const raw = zlib.deflateSync(Buffer.concat(rows));
+  return Buffer.concat([sig, pngChunk('IHDR', ihdr), pngChunk('IDAT', raw), pngChunk('IEND', Buffer.alloc(0))]);
 }
 
 fs.mkdirSync('assets', { recursive: true });
@@ -74,7 +117,6 @@ fs.mkdirSync('assets', { recursive: true });
   console.log(`  ✓ icon${sz}.png`);
 });
 
-// Copy 256 as main icon.png
 fs.copyFileSync('assets/icon256.png', 'assets/icon.png');
 console.log('  ✓ icon.png (256px)');
 console.log('\nDone. Run: node build-ico.js to create icon.ico');
