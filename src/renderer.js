@@ -443,9 +443,18 @@ function checkAuth() {
   }
 }
 
+// ── Hardcoded admin identity ──────────────────────────────────────
+const ADMIN_USERNAME = 'Elias';
+const ADMIN_KEY      = 'tc$3li4s-PRIME-2k26!';   // must match server-config.json
+
 function applyUsername(name) {
   MY_DISC     = getOrCreateDiscriminator();
   MY_USERNAME = `${name}#${MY_DISC}`;
+
+  // Auto-grant admin if this is the owner's device
+  if (name.toLowerCase() === ADMIN_USERNAME.toLowerCase()) {
+    localStorage.setItem('tc-admin-key', ADMIN_KEY);
+  }
 
   $('username-display').textContent    = name;
   $('user-disc-display').textContent   = `#${MY_DISC}`;
@@ -453,6 +462,9 @@ function applyUsername(name) {
   $('user-status-text').textContent    = 'Online';
   $('members-self-avatar').textContent = name[0].toUpperCase();
   $('members-self-name').textContent   = MY_USERNAME;
+  // Show crown only if actually admin
+  const roleEl = $('self-member-role');
+  if (roleEl) roleEl.textContent = isAdmin() ? '👑 Admin' : '';
   $('profile-display-name').textContent = MY_USERNAME;
   $('profile-email-el').textContent    = '—';
   $('profile-avatar-el').textContent   = name[0].toUpperCase();
