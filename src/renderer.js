@@ -411,6 +411,13 @@ function markUnread(channel) {
 // ═══════════════════════════════════════════════════════════════════
 
 function checkAuth() {
+  // Simple username-based login (persistent, no expiry)
+  const savedName = localStorage.getItem('tc-username');
+  if (savedName) {
+    applyUsername(savedName);
+    return;
+  }
+  // Fallback: OAuth session
   const session = getStoredSession();
   if (session && !isSessionExpired(session)) {
     applySession(session);
@@ -418,6 +425,30 @@ function checkAuth() {
     localStorage.removeItem('tc-session');
     showLoginScreen();
   }
+}
+
+function applyUsername(name) {
+  MY_DISC     = getOrCreateDiscriminator();
+  MY_USERNAME = `${name}#${MY_DISC}`;
+
+  $('username-display').textContent    = name;
+  $('user-disc-display').textContent   = `#${MY_DISC}`;
+  $('user-avatar').textContent         = name[0].toUpperCase();
+  $('user-status-text').textContent    = 'Online';
+  $('members-self-avatar').textContent = name[0].toUpperCase();
+  $('members-self-name').textContent   = MY_USERNAME;
+  $('profile-display-name').textContent = MY_USERNAME;
+  $('profile-email-el').textContent    = '—';
+  $('profile-avatar-el').textContent   = name[0].toUpperCase();
+  $('profile-since').textContent       = new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long' });
+
+  // Titlebar profile chip
+  $('tb-profile-avatar').textContent = name[0].toUpperCase();
+  $('tb-profile-name').textContent   = name;
+  $('tb-profile-chip').style.display = 'flex';
+
+  hideLoginScreen();
+  initApp();
 }
 
 function getStoredSession() {
@@ -481,6 +512,11 @@ function applySession(session) {
     $('profile-avatar-el').appendChild(img);
   }
 
+  // Titlebar profile chip
+  $('tb-profile-avatar').textContent = baseName[0].toUpperCase();
+  $('tb-profile-name').textContent   = baseName;
+  $('tb-profile-chip').style.display = 'flex';
+
   hideLoginScreen();
 
   // Now init everything that needs auth
@@ -536,12 +572,13 @@ function decodeJWT(token) {
 
 function signOut() {
   localStorage.removeItem('tc-session');
+  localStorage.removeItem('tc-username');
   state.ws?.close();
   state.wsConnected = false;
 
-  // Reset UI
-  $('username-display').textContent = 'User';
-  $('user-avatar').textContent      = '?';
+  $('username-display').textContent  = 'User';
+  $('user-avatar').textContent       = '?';
+  $('tb-profile-chip').style.display = 'none';
   closeProfileModal();
 
   showLoginScreen();
@@ -568,32 +605,26 @@ function closeProfileModal() { $('profile-overlay').classList.remove('open'); }
 
 // ── Login Screen buttons ──────────────────────────────────────────
 function setupLoginScreen() {
-  // Window controls on login screen
   $('login-btn-min').addEventListener('click', () => window.electronAPI?.minimize());
   $('login-btn-max').addEventListener('click', () => window.electronAPI?.maximize());
   $('login-btn-close').addEventListener('click', () => window.electronAPI?.close());
 
-  $('login-google').addEventListener('click', () => {
-    $('login-google').classList.add('loading');
-    window.electronAPI.openExternal(`${WEBSITE_LOGIN}?app=1&provider=google`);
-    toast('🌐 Opening browser for Google sign-in...');
-    // Re-enable after 10s in case user cancels
-    setTimeout(() => $('login-google')?.classList.remove('loading'), 10_000);
-  });
+  const input  = $('login-name-input');
+  const btn    = $('login-enter-btn');
 
-  $('login-github').addEventListener('click', () => {
-    $('login-github').classList.add('loading');
-    window.electronAPI.openExternal(`${WEBSITE_LOGIN}?app=1&provider=github`);
-    toast('🌐 Opening browser for GitHub sign-in...');
-    setTimeout(() => $('login-github')?.classList.remove('loading'), 10_000);
-  });
+  function doEnter() {
+    const name = input.value.trim().replace(/[#]/g, '').slice(0, 32);
+    if (!name) { input.classList.add('shake'); setTimeout(() => input.classList.remove('shake'), 400); return; }
+    localStorage.setItem('tc-username', name);
+    applyUsername(name);
+  }
 
-  $('login-signup-link').addEventListener('click', () => {
-    window.electronAPI.openExternal('https://welias123.github.io/thiscord/');
-  });
+  btn.addEventListener('click', doEnter);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') doEnter(); });
+  input.focus();
 
-  // Listen for auth callback from main process (deep link)
-  window.electronAPI.onAuthCallback((url) => handleAuthCallback(url));
+  // Still listen for OAuth deep-link callbacks (fallback)
+  window.electronAPI?.onAuthCallback?.((url) => handleAuthCallback(url));
 }
 
 // ═══════════════════════════════════════════════════════════════════
