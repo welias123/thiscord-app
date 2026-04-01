@@ -1326,7 +1326,24 @@ const RTC_CONFIG = {
     { urls: 'stun:stun2.l.google.com:19302' },
     { urls: 'stun:stun3.l.google.com:19302' },
     { urls: 'stun:stun4.l.google.com:19302' },
+    // Free TURN relays — fallback when NAT punch-through fails
+    {
+      urls: 'turn:openrelay.metered.ca:80',
+      username: 'openrelayproject',
+      credential: 'openrelayproject',
+    },
+    {
+      urls: 'turn:openrelay.metered.ca:443',
+      username: 'openrelayproject',
+      credential: 'openrelayproject',
+    },
+    {
+      urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+      username: 'openrelayproject',
+      credential: 'openrelayproject',
+    },
   ],
+  iceCandidatePoolSize: 10,
 };
 
 // Queue ICE candidates that arrive before setRemoteDescription is done
@@ -1347,7 +1364,6 @@ function createPeerConnection(remoteUsername) {
 
   // When we receive remote audio
   pc.ontrack = (event) => {
-    if (!event.streams || !event.streams[0]) return;
     let audio = state.remoteAudios.get(remoteUsername);
     if (!audio) {
       audio = document.createElement('audio');
@@ -1357,7 +1373,14 @@ function createPeerConnection(remoteUsername) {
       document.body.appendChild(audio);
       state.remoteAudios.set(remoteUsername, audio);
     }
-    audio.srcObject = event.streams[0];
+    if (event.streams && event.streams[0]) {
+      audio.srcObject = event.streams[0];
+    } else {
+      // Fallback: build a MediaStream from the track directly
+      const existing = audio.srcObject instanceof MediaStream ? audio.srcObject : new MediaStream();
+      existing.addTrack(event.track);
+      audio.srcObject = existing;
+    }
     audio.muted = !!state.deafened;
     audio.play().catch(() => {});   // force play in Electron
     updateVoiceParticipantsUI();
@@ -1370,9 +1393,10 @@ function createPeerConnection(remoteUsername) {
   };
 
   pc.onconnectionstatechange = () => {
-    if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
+    if (pc.connectionState === 'failed') {
       removePeerConnection(remoteUsername);
     }
+    // 'disconnected' is transient — wait for 'failed' before tearing down
   };
 
   return pc;
