@@ -8,4 +8,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   maximize:           ()        => ipcRenderer.send('win-maximize'),
   close:              ()        => ipcRenderer.send('win-close'),
   platform: process.platform,
+  onUpdateAvailable:  (cb) => ipcRenderer.on('update-available',  (_, info) => cb(info)),
+  onUpdateDownloaded: (cb) => ipcRenderer.on('update-downloaded', (_, info) => cb(info)),
+  installUpdate:      ()   => ipcRenderer.send('install-update'),
 });

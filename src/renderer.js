@@ -357,6 +357,22 @@ async function handleWsMsg(msg) {
     case 'pong':
       break;
 
+    case 'kicked': {
+      toast(`⛔ ${msg.reason || 'You were kicked.'}`, 'error');
+      setTimeout(() => { state.ws?.close(); showLoginScreen(); }, 1500);
+      break;
+    }
+
+    case 'message-deleted': {
+      const delId = msg.id;
+      document.querySelectorAll(`[data-msg-id="${delId}"]`).forEach(el => {
+        el.style.transition = 'opacity 0.3s';
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 310);
+      });
+      break;
+    }
+
     default: break;
   }
 }
@@ -464,6 +480,10 @@ function getStoredSession() {
 function isSessionExpired(session) {
   if (!session.expiresAt) return false;
   return Date.now() > session.expiresAt * 1000 - 60_000; // 1 min buffer
+}
+
+function isAdmin() {
+  return !!localStorage.getItem('tc-admin-key');
 }
 
 function showLoginScreen() {
@@ -730,17 +750,30 @@ function appendMessage(msg) {
 }
 
 function appendMessageEl(container, msg, isContinuation) {
+  const adminBtn = isAdmin() && msg.id
+    ? `<button class="msg-del-btn" title="Delete">✕</button>`
+    : '';
+
   if (isContinuation) {
     const cont = document.createElement('div');
     cont.className = 'msg-continuation';
+    if (msg.id) cont.dataset.msgId = msg.id;
     cont.innerHTML = `
       <span class="msg-time-hover">${escapeHtml(msg.time)}</span>
       <span class="msg-text">${escapeHtml(msg.text)}</span>
+      ${adminBtn}
     `;
+    if (isAdmin() && msg.id) {
+      cont.querySelector('.msg-del-btn').addEventListener('click', e => {
+        e.stopPropagation();
+        adminDeleteMsg(msg.id, msg.channel || state.activeChannel);
+      });
+    }
     container.appendChild(cont);
   } else {
     const group = document.createElement('div');
     group.className = 'msg-group';
+    if (msg.id) group.dataset.msgId = msg.id;
     const authorClass = msg.tag === 'self' ? '' : 'other-name';
     group.innerHTML = `
       <div class="msg-avatar">${escapeHtml(msg.avatar)}</div>
@@ -748,12 +781,33 @@ function appendMessageEl(container, msg, isContinuation) {
         <div class="msg-meta">
           <span class="msg-author ${authorClass}">${escapeHtml(msg.author)}</span>
           <span class="msg-time">${escapeHtml(msg.time)}</span>
+          ${adminBtn}
         </div>
         <span class="msg-text">${escapeHtml(msg.text)}</span>
       </div>
     `;
+    if (isAdmin() && msg.id) {
+      group.querySelector('.msg-del-btn').addEventListener('click', e => {
+        e.stopPropagation();
+        adminDeleteMsg(msg.id, msg.channel || state.activeChannel);
+      });
+    }
     container.appendChild(group);
   }
+}
+
+function adminDeleteMsg(id, channel) {
+  const secret = localStorage.getItem('tc-admin-key');
+  if (!secret || !id) return;
+  wsSend({ type: 'admin-delete-message', id, channel, secret });
+}
+
+function adminKick(username) {
+  const secret = localStorage.getItem('tc-admin-key');
+  if (!secret) return;
+  if (!confirm(`Kick ${username}?`)) return;
+  wsSend({ type: 'admin-kick', target: username, secret });
+  toast(`Kicked ${username}`);
 }
 
 function scrollToBottom() {
@@ -1464,11 +1518,9 @@ function updateVoiceChannelCounts() {
 // Online Users
 // ═══════════════════════════════════════════════════════════════════
 function renderOnlineUsers() {
-  // Update members panel
   const panel = document.querySelector('.members-panel');
   if (!panel) return;
 
-  // Remove old dynamic entries (keep self)
   panel.querySelectorAll('.member-item.dynamic').forEach(el => el.remove());
   panel.querySelector('.members-label').textContent = `Online — ${state.onlineUsers.length}`;
 
@@ -1486,8 +1538,17 @@ function renderOnlineUsers() {
         <span class="member-name">${escapeHtml(u.username)}</span>
         <span class="member-role">${u.voiceChannel ? `🔊 ${u.voiceChannel}` : ''}</span>
       </div>
+      ${isAdmin() ? `<button class="kick-member-btn" title="Kick">⊘</button>` : ''}
     `;
-    item.addEventListener('click', () => openDm(u.username));
+    item.addEventListener('click', e => {
+      if (!e.target.classList.contains('kick-member-btn')) openDm(u.username);
+    });
+    if (isAdmin()) {
+      item.querySelector('.kick-member-btn').addEventListener('click', e => {
+        e.stopPropagation();
+        adminKick(u.username);
+      });
+    }
     panel.querySelector('.members-group').appendChild(item);
   });
 
@@ -1873,6 +1934,48 @@ function renderServerBar() {
   });
 }
 
+function setupAdminKey() {
+  const input  = $('admin-key-input');
+  const btn    = $('admin-key-save');
+  const status = $('admin-status-line');
+  if (!input || !btn) return;
+
+  const current = localStorage.getItem('tc-admin-key') || '';
+  if (current) {
+    input.value = current;
+    status.textContent = '👑 Admin mode active';
+    status.className = 'admin-status-line active';
+  }
+
+  btn.addEventListener('click', () => {
+    const key = input.value.trim();
+    if (key) {
+      localStorage.setItem('tc-admin-key', key);
+      status.textContent = '👑 Admin mode active';
+      status.className = 'admin-status-line active';
+      toast('Admin key saved 👑');
+    } else {
+      localStorage.removeItem('tc-admin-key');
+      status.textContent = 'Admin mode off';
+      status.className = 'admin-status-line';
+      toast('Admin key removed');
+    }
+  });
+}
+
+function setupUpdateNotifications() {
+  window.electronAPI?.onUpdateAvailable?.((info) => {
+    toast(`Update v${info?.version || 'new'} available — downloading…`);
+  });
+  window.electronAPI?.onUpdateDownloaded?.((info) => {
+    const t = document.createElement('div');
+    t.className = 'update-banner';
+    t.innerHTML = `⬆️ Update v${info?.version || 'new'} ready — <button id="restart-update-btn">Restart & Install</button>`;
+    document.body.appendChild(t);
+    $('restart-update-btn')?.addEventListener('click', () => window.electronAPI.installUpdate());
+  });
+}
+
 // ═══════════════════════════════════════════════════════════════════
 // Init — split into two phases
 // ═══════════════════════════════════════════════════════════════════
@@ -1908,6 +2011,8 @@ async function initApp() {
   renderMessages();
   updateDmList();
   setupWebSocket();
+  setupAdminKey();
+  setupUpdateNotifications();
 }
 
 document.addEventListener('DOMContentLoaded', init);

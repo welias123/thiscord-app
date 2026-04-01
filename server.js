@@ -18,6 +18,7 @@ const PORT        = process.env.PORT || 3001;
 const MAX_HISTORY = 100;
 const MAX_MSG_LEN = 8192;
 const RATE_LIMIT  = 10;
+const ADMIN_SECRET = process.env.ADMIN_SECRET || '';
 
 const DEFAULT_CHANNELS = ['general', 'announcements', 'dev-talk', 'media'];
 const DEFAULT_VOICE    = ['lounge', 'gaming', 'stream-stage'];
@@ -247,6 +248,35 @@ function handleMessage(ws, msg) {
 
     case 'ping': {
       send(ws, { type: 'pong', ts: Date.now() });
+      break;
+    }
+
+    case 'admin-kick': {
+      if (!ADMIN_SECRET || msg.secret !== ADMIN_SECRET) {
+        send(ws, { type: 'error', message: 'Not authorized' });
+        return;
+      }
+      const target = String(msg.target || '').slice(0, 32);
+      const targetWs = clientsByName.get(target);
+      if (targetWs) {
+        send(targetWs, { type: 'kicked', reason: 'You were kicked by an admin.' });
+        setTimeout(() => targetWs.close(), 200);
+        log(`[ADMIN] "${client.username}" kicked "${target}"`);
+      }
+      break;
+    }
+
+    case 'admin-delete-message': {
+      if (!ADMIN_SECRET || msg.secret !== ADMIN_SECRET) return;
+      const dch = String(msg.channel || '').slice(0, 128);
+      const did = String(msg.id || '').slice(0, 64);
+      const dhist = history.get(dch);
+      if (dhist) {
+        const didx = dhist.findIndex(m => m.id === did);
+        if (didx !== -1) dhist.splice(didx, 1);
+      }
+      broadcast(dch, { type: 'message-deleted', id: did, channel: dch });
+      log(`[ADMIN] Message "${did}" deleted from #${dch} by "${client.username}"`);
       break;
     }
 

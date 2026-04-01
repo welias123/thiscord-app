@@ -2147,3 +2147,103 @@ kbd {
   80%{transform:translateX(5px)}
 }
 .shake { animation: shake 0.4s ease; border-color: #f87171 !important; }
+
+/* ── Admin UI ── */
+.kick-member-btn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: #f87171;
+  font-size: 14px;
+  cursor: pointer;
+  opacity: 0;
+  padding: 2px 5px;
+  border-radius: 4px;
+  transition: opacity 0.15s, background 0.15s;
+  flex-shrink: 0;
+}
+.member-item:hover .kick-member-btn { opacity: 1; }
+.kick-member-btn:hover { background: rgba(248,113,113,0.15); }
+
+.msg-del-btn {
+  background: none;
+  border: none;
+  color: #f87171;
+  font-size: 11px;
+  cursor: pointer;
+  opacity: 0;
+  padding: 1px 4px;
+  border-radius: 3px;
+  margin-left: 4px;
+  transition: opacity 0.15s, background 0.15s;
+  vertical-align: middle;
+}
+.msg-group:hover .msg-del-btn,
+.msg-continuation:hover .msg-del-btn { opacity: 1; }
+.msg-del-btn:hover { background: rgba(248,113,113,0.15); }
+
+/* Admin key in profile */
+.admin-key-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+.admin-key-input {
+  flex: 1;
+  padding: 8px 12px;
+  background: var(--bg-active);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 13px;
+  outline: none;
+}
+.admin-key-input:focus { border-color: var(--accent); }
+.admin-key-btn {
+  padding: 8px 14px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.admin-key-btn:hover { opacity: 0.85; }
+.admin-status-line {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  min-height: 16px;
+}
+.admin-status-line.active { color: #a78bfa; }
+
+/* ── Update banner ── */
+.update-banner {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e1b4b;
+  border: 1px solid #6366f1;
+  color: var(--text-primary);
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 13px;
+  z-index: 9999;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  white-space: nowrap;
+}
+.update-banner button {
+  background: #6366f1;
+  color: #fff;
+  border: none;
+  padding: 4px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  margin-left: 8px;
+}
+.update-banner button:hover { opacity: 0.85; }

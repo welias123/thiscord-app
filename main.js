@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain, desktopCapturer, session, shell } = require('electron');
 const path = require('path');
+const { autoUpdater } = require('electron-updater');
 
 let mainWindow;
 let pendingAuthUrl = null;
@@ -74,6 +75,19 @@ function createWindow() {
     }
   });
 
+  // Auto-updater
+  autoUpdater.logger = null;
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+  autoUpdater.checkForUpdates().catch(() => {});
+
+  autoUpdater.on('update-available', (info) => {
+    mainWindow?.webContents.send('update-available', info);
+  });
+  autoUpdater.on('update-downloaded', (info) => {
+    mainWindow?.webContents.send('update-downloaded', info);
+  });
+
   session.defaultSession.setPermissionRequestHandler((_wc, _perm, callback) => {
     callback(true);
   });
@@ -119,3 +133,5 @@ ipcMain.on('win-maximize', () => {
   else mainWindow?.maximize();
 });
 ipcMain.on('win-close', () => mainWindow?.close());
+
+ipcMain.on('install-update', () => autoUpdater.quitAndInstall());
