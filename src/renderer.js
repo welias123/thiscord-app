@@ -1326,21 +1326,27 @@ const RTC_CONFIG = {
     { urls: 'stun:stun2.l.google.com:19302' },
     { urls: 'stun:stun3.l.google.com:19302' },
     { urls: 'stun:stun4.l.google.com:19302' },
+    { urls: 'stun:stun.relay.metered.ca:80' },
     // Free TURN relays — fallback when NAT punch-through fails
     {
-      urls: 'turn:openrelay.metered.ca:80',
-      username: 'openrelayproject',
-      credential: 'openrelayproject',
+      urls: 'turn:standard.relay.metered.ca:80',
+      username: 'e84571b0e67e0b4b06e5f3d1',
+      credential: 'Bk6UAIZ8sMROLZLa',
     },
     {
-      urls: 'turn:openrelay.metered.ca:443',
-      username: 'openrelayproject',
-      credential: 'openrelayproject',
+      urls: 'turn:standard.relay.metered.ca:80?transport=tcp',
+      username: 'e84571b0e67e0b4b06e5f3d1',
+      credential: 'Bk6UAIZ8sMROLZLa',
     },
     {
-      urls: 'turn:openrelay.metered.ca:443?transport=tcp',
-      username: 'openrelayproject',
-      credential: 'openrelayproject',
+      urls: 'turn:standard.relay.metered.ca:443',
+      username: 'e84571b0e67e0b4b06e5f3d1',
+      credential: 'Bk6UAIZ8sMROLZLa',
+    },
+    {
+      urls: 'turns:standard.relay.metered.ca:443?transport=tcp',
+      username: 'e84571b0e67e0b4b06e5f3d1',
+      credential: 'Bk6UAIZ8sMROLZLa',
     },
   ],
   iceCandidatePoolSize: 10,
@@ -1393,13 +1399,41 @@ function createPeerConnection(remoteUsername) {
   };
 
   pc.onconnectionstatechange = () => {
+    console.log(`[RTC] ${remoteUsername} →`, pc.connectionState);
     if (pc.connectionState === 'failed') {
       removePeerConnection(remoteUsername);
+      // Reconnect: re-send an offer so the call recovers automatically
+      if (state.inVoice && state.voiceMembers.has(remoteUsername)) {
+        setTimeout(() => reconnectPeer(remoteUsername), 1000);
+      }
+    } else if (pc.connectionState === 'disconnected') {
+      // Give it 5s to self-recover before forcing a reconnect
+      setTimeout(() => {
+        const current = state.peerConnections.get(remoteUsername);
+        if (current === pc && pc.connectionState === 'disconnected') {
+          removePeerConnection(remoteUsername);
+          if (state.inVoice && state.voiceMembers.has(remoteUsername)) {
+            reconnectPeer(remoteUsername);
+          }
+        }
+      }, 5000);
     }
-    // 'disconnected' is transient — wait for 'failed' before tearing down
   };
 
   return pc;
+}
+
+async function reconnectPeer(remoteUsername) {
+  if (!state.inVoice || state.peerConnections.has(remoteUsername)) return;
+  console.log('[RTC] Reconnecting to', remoteUsername);
+  const pc = createPeerConnection(remoteUsername);
+  try {
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    wsSend({ type: 'signal', to: remoteUsername, data: { type: 'offer', sdp: offer } });
+  } catch (err) {
+    console.warn('[RTC] Reconnect offer failed:', err.message);
+  }
 }
 
 function removePeerConnection(username) {
