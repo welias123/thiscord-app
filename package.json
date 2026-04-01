@@ -10,7 +10,18 @@
     "build:win": "electron-builder --win --x64 --ia32 --arm64",
     "build:linux": "electron-builder --linux --x64 --arm64",
     "build:mac": "electron-builder --mac --x64 --arm64",
-    "build:all": "electron-builder --win --linux --mac --x64 --ia32 --arm64"
+    "build:all": "electron-builder --win --linux --mac --x64 --ia32 --arm64",
+    "build:server": "pkg server.js --targets node18-win-x64 --output server-dist/ThisCord-Server.exe"
+  },
+  "pkg": {
+    "targets": [
+      "node18-win-x64"
+    ],
+    "outputPath": "server-dist",
+    "scripts": [
+      "server.js"
+    ],
+    "assets": []
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -49,8 +60,22 @@
       "executableName": "ThisCord",
       "fileAssociations": [],
       "target": [
-        { "target": "nsis",     "arch": ["x64", "ia32", "arm64"] },
-        { "target": "portable", "arch": ["x64", "ia32", "arm64"] }
+        {
+          "target": "nsis",
+          "arch": [
+            "x64",
+            "ia32",
+            "arm64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64",
+            "ia32",
+            "arm64"
+          ]
+        }
       ]
     },
     "mac": {
@@ -59,8 +84,20 @@
       "hardenedRuntime": false,
       "gatekeeperAssess": false,
       "target": [
-        { "target": "dmg", "arch": ["x64", "arm64"] },
-        { "target": "zip", "arch": ["x64", "arm64"] }
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
       ]
     },
     "dmg": {
@@ -83,16 +120,39 @@
       "icon": "assets/icon.png",
       "category": "Network",
       "target": [
-        { "target": "AppImage", "arch": ["x64", "arm64"] },
-        { "target": "deb",      "arch": ["x64", "arm64"] }
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
       ]
     },
     "deb": {
-      "depends": ["libgtk-3-0", "libnotify4", "libnss3", "libxss1", "libxtst6", "xdg-utils", "libatspi2.0-0", "libuuid1", "libsecret-1-0"]
+      "depends": [
+        "libgtk-3-0",
+        "libnotify4",
+        "libnss3",
+        "libxss1",
+        "libxtst6",
+        "xdg-utils",
+        "libatspi2.0-0",
+        "libuuid1",
+        "libsecret-1-0"
+      ]
     }
   },
   "devDependencies": {
     "electron": "^30.5.1",
-    "electron-builder": "^24.0.0"
+    "electron-builder": "^24.0.0",
+    "pkg": "^5.8.1"
   }
 }
