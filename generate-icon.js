@@ -32,22 +32,19 @@ function pointInPolygon(px, py, poly) {
   for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
     const xi = poly[i][0], yi = poly[i][1];
     const xj = poly[j][0], yj = poly[j][1];
-    if (((yi > py) !== (yj > py)) && (px < ((xj - xi) * (py - yi)) / (yj - yi) + xi)) {
+    if (((yi > py) !== (yj > py)) && (px < ((xj - xi) * (py - yi)) / (yj - yi) + xi))
       inside = !inside;
-    }
   }
   return inside;
 }
 
 function createPNG(size) {
   const sig = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
-
   const ihdr = Buffer.alloc(13);
   ihdr.writeUInt32BE(size, 0); ihdr.writeUInt32BE(size, 4);
   ihdr[8] = 8; ihdr[9] = 6; // 8-bit RGBA
 
-  // Lightning bolt polygon (normalized 0-1 coords, then scaled to size)
-  // Classic zig-zag bolt shape
+  // Lightning bolt polygon (normalized → scaled)
   const boltPoly = [
     [0.60, 0.04],
     [0.26, 0.50],
@@ -57,50 +54,42 @@ function createPNG(size) {
     [0.54, 0.50],
   ].map(([x, y]) => [x * size, y * size]);
 
-  // Padding/corner radius for background pill
+  // iOS-style rounded-square background
   const pad = size * 0.06;
-  const cr  = size * 0.22; // corner radius
+  const cr  = size * 0.22;
 
-  function roundedRect(px, py) {
-    // Check if pixel is inside rounded rectangle
+  function inRoundedRect(px, py) {
     const x = px - pad, y = py - pad;
     const w = size - 2 * pad, h = size - 2 * pad;
-    const rx = cr, ry = cr;
     if (x < 0 || y < 0 || x > w || y > h) return false;
-    // corner checks
-    if (x < rx && y < ry) return Math.hypot(x - rx, y - ry) <= rx;
-    if (x > w - rx && y < ry) return Math.hypot(x - (w - rx), y - ry) <= rx;
-    if (x < rx && y > h - ry) return Math.hypot(x - rx, y - (h - ry)) <= rx;
-    if (x > w - rx && y > h - ry) return Math.hypot(x - (w - rx), y - (h - ry)) <= rx;
+    if (x < cr  && y < cr)       return Math.hypot(x - cr,      y - cr)       <= cr;
+    if (x > w-cr && y < cr)      return Math.hypot(x - (w - cr), y - cr)       <= cr;
+    if (x < cr  && y > h - cr)   return Math.hypot(x - cr,      y - (h - cr)) <= cr;
+    if (x > w-cr && y > h - cr)  return Math.hypot(x - (w - cr), y - (h - cr)) <= cr;
     return true;
   }
 
   const rows = [];
   for (let y = 0; y < size; y++) {
     const row = Buffer.alloc(1 + size * 4);
-    row[0] = 0; // no filter
+    row[0] = 0;
     for (let x = 0; x < size; x++) {
       const i = 1 + x * 4;
-      const inBg   = roundedRect(x, y);
+      const inBg   = inRoundedRect(x, y);
       const inBolt = pointInPolygon(x, y, boltPoly);
 
       if (!inBg) {
-        // transparent
-        row[i] = 0; row[i+1] = 0; row[i+2] = 0; row[i+3] = 0;
+        row[i] = row[i+1] = row[i+2] = row[i+3] = 0; // transparent
       } else if (inBolt) {
-        // Lightning bolt: gradient from bright purple (#c084fc) top to bright blue (#60a5fa) bottom
-        const t  = y / size;
-        const rv = Math.round(0xc0 + (0x60 - 0xc0) * t);
-        const gv = Math.round(0x84 + (0xa5 - 0x84) * t);
-        const bv = Math.round(0xfc + (0xfa - 0xfc) * t);
-        row[i] = rv; row[i+1] = gv; row[i+2] = bv; row[i+3] = 255;
+        // White bolt with slight yellow warmth
+        row[i] = 255; row[i+1] = 252; row[i+2] = 220; row[i+3] = 255;
       } else {
-        // Background: dark purple #1e0a3c → #0f0520
+        // Vivid blue-purple gradient: #6D28D9 top-left → #2563EB bottom-right
         const t  = (x + y) / (size * 2);
-        const rv = Math.round(0x1e + (0x0f - 0x1e) * t);
-        const gv = Math.round(0x0a + (0x05 - 0x0a) * t);
-        const bv = Math.round(0x3c + (0x20 - 0x3c) * t);
-        row[i] = rv; row[i+1] = gv; row[i+2] = bv; row[i+3] = 255;
+        row[i]   = Math.round(0x6D + (0x25 - 0x6D) * t); // R
+        row[i+1] = Math.round(0x28 + (0x63 - 0x28) * t); // G
+        row[i+2] = Math.round(0xD9 + (0xEB - 0xD9) * t); // B
+        row[i+3] = 255;
       }
     }
     rows.push(row);
@@ -119,4 +108,4 @@ fs.mkdirSync('assets', { recursive: true });
 
 fs.copyFileSync('assets/icon256.png', 'assets/icon.png');
 console.log('  ✓ icon.png (256px)');
-console.log('\nDone. Run: node build-ico.js to create icon.ico');
+console.log('\nDone. Run: node build-ico.js && node build-icns.js');

@@ -445,7 +445,12 @@ function applyUsername(name) {
   // Titlebar profile chip
   $('tb-profile-avatar').textContent = name[0].toUpperCase();
   $('tb-profile-name').textContent   = name;
-  $('tb-profile-chip').style.display = 'flex';
+  const chip = $('tb-profile-chip');
+  chip.style.display = 'flex';
+  if (!chip.dataset.bound) {
+    chip.addEventListener('click', openProfileModal);
+    chip.dataset.bound = '1';
+  }
 
   hideLoginScreen();
   initApp();
@@ -515,7 +520,12 @@ function applySession(session) {
   // Titlebar profile chip
   $('tb-profile-avatar').textContent = baseName[0].toUpperCase();
   $('tb-profile-name').textContent   = baseName;
-  $('tb-profile-chip').style.display = 'flex';
+  const chipEl = $('tb-profile-chip');
+  chipEl.style.display = 'flex';
+  if (!chipEl.dataset.bound) {
+    chipEl.addEventListener('click', openProfileModal);
+    chipEl.dataset.bound = '1';
+  }
 
   hideLoginScreen();
 

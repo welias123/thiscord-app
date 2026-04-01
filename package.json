@@ -9,7 +9,8 @@
     "server": "node server.js",
     "build:win": "electron-builder --win --x64 --ia32 --arm64",
     "build:linux": "electron-builder --linux --x64 --arm64",
-    "build:all": "electron-builder --win --linux --x64 --ia32 --arm64"
+    "build:mac": "electron-builder --mac --x64 --arm64",
+    "build:all": "electron-builder --win --linux --mac --x64 --ia32 --arm64"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -19,6 +20,7 @@
   "build": {
     "appId": "com.thiscord.app",
     "productName": "ThisCord",
+    "copyright": "© 2026 ThisCord Project",
     "asar": true,
     "directories": {
       "output": "dist"
@@ -36,10 +38,29 @@
       "signDlls": false,
       "sign": null,
       "certificateFile": null,
+      "publisherName": "ThisCord Project",
+      "legalTrademarks": "ThisCord",
+      "executableName": "ThisCord",
+      "fileAssociations": [],
       "target": [
         { "target": "nsis",     "arch": ["x64", "ia32", "arm64"] },
         { "target": "portable", "arch": ["x64", "ia32", "arm64"] }
       ]
+    },
+    "mac": {
+      "icon": "assets/icon.icns",
+      "category": "public.app-category.social-networking",
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "target": [
+        { "target": "dmg", "arch": ["x64", "arm64"] },
+        { "target": "zip", "arch": ["x64", "arm64"] }
+      ]
+    },
+    "dmg": {
+      "title": "Install ThisCord",
+      "iconSize": 80,
+      "sign": false
     },
     "nsis": {
       "oneClick": false,
