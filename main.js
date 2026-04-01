@@ -79,12 +79,16 @@ function createWindow() {
   autoUpdater.logger = null;
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
+
+  // Check on launch, then every hour while the app is open
   autoUpdater.checkForUpdates().catch(() => {});
+  setInterval(() => autoUpdater.checkForUpdates().catch(() => {}), 60 * 60 * 1000);
 
   autoUpdater.on('update-available', (info) => {
     mainWindow?.webContents.send('update-available', info);
   });
   autoUpdater.on('update-downloaded', (info) => {
+    // Install immediately — user sees a 5-second countdown then the app restarts
     mainWindow?.webContents.send('update-downloaded', info);
   });
 

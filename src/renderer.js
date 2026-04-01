@@ -2030,11 +2030,21 @@ function setupUpdateNotifications() {
     toast(`Update v${info?.version || 'new'} available — downloading…`);
   });
   window.electronAPI?.onUpdateDownloaded?.((info) => {
+    const v = info?.version || 'new';
+    let secs = 10;
     const t = document.createElement('div');
     t.className = 'update-banner';
-    t.innerHTML = `⬆️ Update v${info?.version || 'new'} ready — <button id="restart-update-btn">Restart & Install</button>`;
+    const render = () => {
+      t.innerHTML = `⬆️ Update v${v} ready — restarting in ${secs}s <button id="restart-update-btn">Restart now</button>`;
+      $('restart-update-btn')?.addEventListener('click', () => window.electronAPI.installUpdate());
+    };
+    render();
     document.body.appendChild(t);
-    $('restart-update-btn')?.addEventListener('click', () => window.electronAPI.installUpdate());
+    const iv = setInterval(() => {
+      secs--;
+      if (secs <= 0) { clearInterval(iv); window.electronAPI.installUpdate(); }
+      else render();
+    }, 1000);
   });
 }
 
