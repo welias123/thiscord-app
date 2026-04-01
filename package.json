@@ -38,8 +38,7 @@
       "certificateFile": null,
       "target": [
         { "target": "nsis",     "arch": ["x64", "ia32", "arm64"] },
-        { "target": "portable", "arch": ["x64", "ia32", "arm64"] },
-        { "target": "msi",      "arch": ["x64", "ia32"] }
+        { "target": "portable", "arch": ["x64", "ia32", "arm64"] }
       ]
     },
     "nsis": {
